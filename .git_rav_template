@@ -1,0 +1,33 @@
+Release <%= Time.now.strftime("%Y-%m-%d") %>
+
+## リリース前
+- [ ] stagingのテストが通っていることを確認
+- [ ] stagingで動作確認
+```
+@here
+https://staging.logikura.com/
+リリースします！担当箇所の確認をstagingでお願いします！
+```
+<% pull_request_titles.each do |title| %>
+  - [ ] <%= title %>
+<% end %>
+
+## リリース
+- [ ] masterのテストが通っていることを確認
+- [ ] slackのproductチャンネルでリリースすることを通知
+```
+@here
+本番リリースします！
+```
+- [ ] deploy
+
+## リリース後
+- [ ] 本番動作確認
+```
+@here
+https://logikura.com/
+リリースしました！担当箇所の確認を本番でお願いします！
+```
+<% pull_request_titles.each do |title| %>
+  - [ ] <%= title %>
+<% end %>
