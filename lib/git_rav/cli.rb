@@ -28,13 +28,13 @@ module GitRav
       set_variables(version)
 
       # TODO: it raise error when same name branch is exist
+      puts("Create #{develop_branch_name} branch...")
       develop_branch_sha = client.ref(remote_repository_name, "heads/#{develop_branch_name}").object.sha
       release_branch = client.create_reference(remote_repository_name, "heads/#{release_branch_name}", develop_branch_sha)
       release_branch_ref = release_branch.ref
 
-      # TODO: change ios version file
+      puts("Version commit")
       content = client.contents(remote_repository_name, path: version_file_path, ref: release_branch_ref)
-
       client.update_contents(
         remote_repository_name,
         version_file_path,
@@ -44,26 +44,37 @@ module GitRav
         branch: release_branch_ref
       )
 
+      puts("Build pull request body...")
       body = build_pr_body
+
+      puts("Create pull requests...")
       client.create_pull_request(remote_repository_name, master_branch_name, release_branch_ref, version_name, body)
       client.create_pull_request(remote_repository_name, develop_branch_name, release_branch_ref, version_name, body)
+
+      puts("Done.")
     end
 
     desc "release VERSION", "merge pull requests"
     def release(version)
       set_variables(version)
 
+      puts("Fetch pull requests...")
       release_branch = client.ref(remote_repository_name, "heads/#{release_branch_name}")
 
+      puts("Tagging...")
       target_commitish = release_branch.object.sha
       client.create_release(remote_repository_name, version_name, target_commitish: target_commitish, name: version, body: version_name)
 
+      puts("Merge pull requests...")
       pull_requests = client.pull_requests(remote_repository_name, state: 'open', head: "#{client.login}:#{release_branch_name}")
       pull_requests.each do |pull_request|
         client.merge_pull_request(remote_repository_name, pull_request.number, commit_message = version_name)
       end
 
+      puts("Delete branches...")
       client.delete_ref(remote_repository_name, "heads/#{release_branch_name}")
+
+      puts("Done.")
     end
 
     private
@@ -89,6 +100,8 @@ module GitRav
       pull_request_titles = Open3.capture3(
         "git log origin/#{master_branch_name}..origin/#{develop_branch_name} --merges --first-parent --pretty=format:'%b'"
       ).first.chomp.split("\n")
+
+      pull_request_titles.each { puts(pull_request_titles) }
 
       template_path = "#{Dir.pwd}/#{TEMPLATE_FILE_NAME}"
 
