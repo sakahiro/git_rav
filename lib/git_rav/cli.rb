@@ -56,9 +56,9 @@ module GitRav
       release_branch = client.ref(remote_repository_name, "heads/#{release_branch_name}")
 
       target_commitish = release_branch.object.sha
-      client.create_release(remote_repository_name, version_name, target_commitish: target_commitish, name: version_name, body: version_name)
+      client.create_release(remote_repository_name, version_name, target_commitish: target_commitish, name: version, body: version_name)
 
-      pull_requests = client.pull_requests(remote_repository_name, state: 'open', head: release_branch.ref)
+      pull_requests = client.pull_requests(remote_repository_name, state: 'open', head: "#{client.login}:#{release_branch_name}")
       pull_requests.each do |pull_request|
         client.merge_pull_request(remote_repository_name, pull_request.number, commit_message = version_name)
       end
